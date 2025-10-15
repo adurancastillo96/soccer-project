@@ -29,6 +29,15 @@ public class Player {
         this.setGoals(goals);
     }
 
+    public Player(UUID id, String fullName, int birthYear, String fieldLocation, int squadNumber, int goals) {
+        this.id = id;
+        this.setFullName(fullName);
+        this.setBirthYear(birthYear);
+        this.setFieldLocation(fieldLocation);
+        this.setSquadNumber(squadNumber);
+        this.setGoals(goals);
+    }
+
     // ---------- GETTERS ----------
     public UUID getId() { return this.id; }
     public String getFullName() { return this.fullName; }

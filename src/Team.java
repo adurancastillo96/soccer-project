@@ -28,6 +28,16 @@ public class Team {
         this.players = new ArrayList<>();
     }
 
+    public Team(UUID id, String name, String city, String coach, String formation, int matchesWon) {
+        this.id = id;
+        this.setName(name);
+        this.setCity(city);
+        this.setCoach(coach);
+        this.setFormation(formation);
+        this.matchesWon = matchesWon;
+        this.players = new ArrayList<>();
+    }
+
     // -------- GETTERS --------
     public UUID getId() { return id; }
     public String getName(){ return name; }

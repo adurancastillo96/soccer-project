@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -9,10 +10,14 @@ public class Main {
 
     private static final Scanner scanner = new Scanner(System.in);
     private static final List<Team> teams = new ArrayList<>();
+    private static final SoccerDatabase database = new SoccerDatabaseCSV();
 
     // --------------- MAIN ----------------
 
     public static void main(String[] args) {
+
+        // Cargar datos guardados
+        teams.addAll(database.load());
 
         int option;
         while (true) {
@@ -25,16 +30,13 @@ public class Main {
             System.out.println("6. Eliminar jugador de un equipo");
             System.out.println("7. Eliminar un equipo");
             System.out.println("8. Mostrar resumen");
-            System.out.println("9. Simular equipo");
+            System.out.println("9. Simular partido");
             System.out.println("0. Exit");
             System.out.print("Elige una opción: ");
 
-            option = Integer.parseInt(scanner.nextLine());
+            option = Integer.parseInt(scanner.nextLine()); //Excepcion al convertir a int
             switch (option) {
-                case 0 -> {
-                    System.out.print("Saliendo del programa...");
-                    return;
-                }
+                case 0 -> salir();
                 case 1 -> createTeam(); // Crear equipo
                 case 2 -> addPlayerToTeam(); //Añadir jugador a equipo
                 case 3 -> showInfoPlayer(); // Mostrar info de un jugador
@@ -156,7 +158,7 @@ public class Main {
     }
 
     private static void showInfoTeam() {
-        System.out.print("ID del jugador: ");
+        System.out.print("ID del equipo: ");
         String idStr = scanner.nextLine().trim();
         if (idStr.isBlank()) {
             System.out.println("Operación no efectuada");
@@ -173,7 +175,28 @@ public class Main {
     }
 
     private static void removePlayer() {
-        // En proceso
+        System.out.print("ID del equipo: ");
+        String idStrTeam = scanner.nextLine().trim();
+        System.out.print("ID del jugador: ");
+        String idStrPlayer = scanner.nextLine().trim();
+
+        if (idStrTeam.isBlank() || idStrPlayer.isBlank()) {
+            System.out.println("Operación no efectuada.");
+            return;
+        }
+
+        try {
+            UUID teamId = UUID.fromString(idStrTeam);
+            UUID playerId = UUID.fromString(idStrPlayer);
+            Team team = findTeamById(teamId);
+            boolean deleted = team.removePlayerById(playerId);
+            if (!deleted) throw new IllegalArgumentException("Jugador no encontrado.");
+            System.out.println("Jugador eliminado correctamente.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado: " + e.getMessage());
+        }
     }
 
     private static void removeTeam() {
@@ -186,8 +209,8 @@ public class Main {
 
         try {
             UUID teamId = UUID.fromString(idStr);
-            boolean remove = teams.removeIf(team -> team.getId().equals(teamId));
-            if (!remove) throw new IllegalArgumentException("El equipo no existe.");
+            boolean deleted = teams.removeIf(team -> team.getId().equals(teamId));
+            if (!deleted) throw new IllegalArgumentException("El equipo no existe.");
             System.out.println("Equipo eliminado correctamente.");
         } catch  (IllegalArgumentException e) {
             System.out.println("Error: " + e.getMessage());
@@ -202,7 +225,42 @@ public class Main {
     }
 
     private static void simulateMatch() {
-        // En proceso
+        showInfoTeams();
+        System.out.println("\n=== Simulador Partido ===");
+        System.out.print("ID del equipo 1: ");
+        String idStrTeam1 = scanner.nextLine().trim();
+        System.out.print("ID del equipo 2: ");
+        String idStrTeam2 = scanner.nextLine().trim();
+
+        Random rand = new Random();
+        int goalsTeam1 = rand.nextInt(10);
+        int goalsTeam2 = rand.nextInt(10);
+
+        if (idStrTeam1.isBlank() || idStrTeam2.isBlank()) {
+            System.out.println("Operación no efectuada.");
+            return;
+        }
+
+        try {
+            UUID teamId1 = UUID.fromString(idStrTeam1);
+            Team team1 = findTeamById(teamId1);
+            UUID teamId2 = UUID.fromString(idStrTeam2);
+            Team team2 = findTeamById(teamId2);
+
+            if (goalsTeam1 > goalsTeam2) {
+                team1.setMatchesWon(team1.getMatchesWon() + 1);
+                System.out.println("> Equipo ganador:\n" + team1.getName() + " con " + goalsTeam1 + " goles.");
+            } else {
+                team2.setMatchesWon(team2.getMatchesWon() + 1);
+                System.out.println("> Equipo ganador:\n" + team2.getName() + " con " + goalsTeam2 + " goles.");
+            }
+
+
+        } catch  (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+
     }
 
     // --------------- METODOS AUXILIARES ----------------
@@ -213,5 +271,11 @@ public class Main {
         return teams.stream().filter(team -> team.getId().equals(id)).findFirst().orElse(null);
     }
 
+    private static void salir() {
+        database.save(teams);
+        System.out.println("Datos guardados.");
+        System.out.print("Saliendo del programa...");
+        System.exit(0);
+    }
 
 }
